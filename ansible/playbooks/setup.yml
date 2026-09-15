@@ -1,0 +1,14 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: Atualizar cache de pacotes APT no Linux
+      apt:
+        update_cache: yes
+    - name: Instalar dependencias essenciais para o pipeline da F.C.A.
+      apt:
+        name:
+          - git
+          - curl
+          - python3-pip
+          - docker.io
+        state: present
