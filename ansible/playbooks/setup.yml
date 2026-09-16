@@ -13,6 +13,7 @@
           - python3-pip
           - python3-venv
           - docker.io
+          - r-base
         state: present
 
     # Configuração específica para a VM do Simulador (Gerador de Dados)
