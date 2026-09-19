@@ -33,3 +33,13 @@ O ecossistema roda sobre **Linux** e é segmentado em 4 Máquinas Virtuais (VMs)
 Para provisionar o ambiente de forma automatizada nas VMs Linux:
 ```bash
 ansible-playbook -i ansible/inventory.ini ansible/playbooks/setup.yml
+
+
+
+
+
+## Explicação 
+ansible/: Centraliza a Infraestrutura como Código (IaC). Contém o inventário (inventory.ini) com os IPs das 4 VMs e o playbook de automação (playbooks/setup.yml).   
+simulator/: Destinada a abrigar os códigos e scripts do mini gerador de dados transacionais (que criará os arquivos .csv na VM 1).   
+r-pipeline/: Onde ficarão os scripts em linguagem R responsáveis pela camada de ETL (Extração, Transformação e Carga) na VM 2.   big-data/: Espaço reservado para documentar ou armazenar os componentes de processamento de massa da VM 3.   
+monitoring/: Contém as subpastas do Grafana e de provisionamento de observabilidade para supervisionar o pipeline na VM 4.   docs/: Guarda a documentação técnica oficial do projeto, como o arquivo arquitetura.md.  

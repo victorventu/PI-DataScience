@@ -1,11 +1,13 @@
-- hosts: all
+---
+- name: Configuração Inicial das VMs do Laboratório de Dados
+  hosts: all
   become: yes
   tasks:
-    - name: Atualizar cache de pacotes APT no Linux
+    - name: Atualizar o cache do gerenciador de pacotes APT
       apt:
         update_cache: yes
 
-    - name: Instalar dependências essenciais (Git, Python, Pip, Docker)
+    - name: Instalar dependências essenciais do sistema
       apt:
         name:
           - git
@@ -13,23 +15,15 @@
           - python3-pip
           - python3-venv
           - docker.io
-          - r-base
         state: present
 
-    # Configuração específica para a VM do Simulador (Gerador de Dados)
-    - name: Criar diretório de trabalho para o Simulador de Dados da FCA
-      file:
-        path: /opt/fca/simulator
-        state: directory
-        mode: '0755'
-
-    # Configuração específica para a Camada de Armazenamento / Big Data
-    - name: Criar diretórios de armazenamento e logs do pipeline
+    - name: Criar diretórios de trabalho padronizados
       file:
         path: "{{ item }}"
         state: directory
         mode: '0755'
       loop:
+        - /opt/fca/simulator
         - /opt/fca/data/raw
         - /opt/fca/data/processed
         - /opt/fca/logs
