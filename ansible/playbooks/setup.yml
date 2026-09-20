@@ -3,19 +3,41 @@
   hosts: all
   become: yes
   tasks:
-    - name: Atualizar o cache do gerenciador de pacotes APT
-      apt:
-        update_cache: yes
+    - name: Configurar rota padrão e DNS externo nas VMs
+      shell: |
+        ip route add default via 192.168.122.1 metric 100 2>/dev/null || true
+        systemctl stop systemd-resolved || true
+        systemctl disable systemd-resolved || true
+        rm -f /etc/resolv.conf
+        echo "nameserver 8.8.8.8" > /etc/resolv.conf
+      args:
+        executable: /bin/bash
+
+    - name: Garantir configuração de IPv4 para o APT
+      copy:
+        content: 'Acquire::ForceIPv4 "true";'
+        dest: /etc/apt/apt.conf.d/99force-ipv4
+
+    - name: Limpar CD-ROMs, remover ubuntu.sources e configurar sources.list clássico
+      shell: |
+        sed -i '/cdrom:/d' /etc/apt/sources.list 2>/dev/null || true
+        rm -f /etc/apt/sources.list.d/ubuntu.sources
+        cat <<EOF > /etc/apt/sources.list
+        deb http://archive.ubuntu.com/ubuntu/ noble main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ noble-updates main restricted universe multiverse
+        deb http://archive.ubuntu.com/ubuntu/ noble-backports main restricted universe multiverse
+        deb http://security.ubuntu.com/ubuntu/ noble-security main restricted universe multiverse
+        EOF
+        apt-get clean
+        apt-get update -y
+      args:
+        executable: /bin/bash
 
     - name: Instalar dependências essenciais do sistema
-      apt:
-        name:
-          - git
-          - curl
-          - python3-pip
-          - python3-venv
-          - docker.io
-        state: present
+      shell: |
+        apt-get install -y git curl python3-pip python3-venv docker.io
+      args:
+        executable: /bin/bash
 
     - name: Criar diretórios de trabalho padronizados
       file:
