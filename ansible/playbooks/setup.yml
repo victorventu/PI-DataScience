@@ -33,11 +33,30 @@
       args:
         executable: /bin/bash
 
-    - name: Instalar dependências essenciais do sistema
+    - name: Instalar dependências essenciais do sistema (todas as VMs)
       shell: |
         apt-get install -y git curl python3-pip python3-venv docker.io
       args:
         executable: /bin/bash
+
+    - name: Instalar R (apenas na VM de ETL)
+      shell: |
+        apt-get install -y r-base
+      args:
+        executable: /bin/bash
+      when: inventory_hostname in groups['etl']
+
+    - name: Garantir que o serviço Docker está ativo e habilitado
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Adicionar usuário ao grupo docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: yes
 
     - name: Criar diretórios de trabalho padronizados
       file:
