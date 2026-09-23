@@ -34,16 +34,28 @@
         executable: /bin/bash
 
     - name: Instalar dependências essenciais do sistema (todas as VMs)
-      shell: |
-        apt-get install -y git curl python3-pip python3-venv docker.io
-      args:
-        executable: /bin/bash
+      apt:
+        name:
+          - git
+          - curl
+          - python3-pip
+          - python3-venv
+          - docker.io
+        state: present
+        update_cache: yes
+
+    - name: Instalar bibliotecas do Python para o Simulador (apenas na VM do Simulador)
+      apt:
+        name:
+          - python3-pandas
+        state: present
+      when: inventory_hostname in groups['simulator']
 
     - name: Instalar R (apenas na VM de ETL)
-      shell: |
-        apt-get install -y r-base
-      args:
-        executable: /bin/bash
+      apt:
+        name:
+          - r-base
+        state: present
       when: inventory_hostname in groups['etl']
 
     - name: Garantir que o serviço Docker está ativo e habilitado

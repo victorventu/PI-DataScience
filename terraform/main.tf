@@ -70,14 +70,20 @@ resource "libvirt_domain" "vm" {
 }
 
 output "ips" {
-  value = { for name, vm in libvirt_domain.vm : name => vm.network_interface[0].addresses[0] }
+  value = { 
+    for name, vm in libvirt_domain.vm : 
+    name => try(vm.network_interface[0].addresses[0], "") 
+  }
 }
 
 # Gera o inventory.ini do Ansible automaticamente, sempre com os IPs certos.
 resource "local_file" "ansible_inventory" {
   filename = "${path.module}/../ansible/inventory.ini"
   content = templatefile("${path.module}/inventory.tpl", {
-    vms          = { for name, vm in libvirt_domain.vm : name => vm.network_interface[0].addresses[0] }
+    vms          = { 
+      for name, vm in libvirt_domain.vm : 
+      name => try(vm.network_interface[0].addresses[0], "") 
+    }
     ansible_user = var.ansible_user
     ssh_key_path = trimsuffix(var.ssh_public_key_path, ".pub")
   })
