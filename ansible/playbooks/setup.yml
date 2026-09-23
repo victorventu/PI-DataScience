@@ -18,8 +18,11 @@
         content: 'Acquire::ForceIPv4 "true";'
         dest: /etc/apt/apt.conf.d/99force-ipv4
 
-    - name: Limpar CD-ROMs, remover ubuntu.sources e configurar sources.list clássico
+    - name: Limpar CD-ROMs, remover ubuntu.sources e configurar sources.list clássico com espera de lock
       shell: |
+        while fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+          sleep 3
+        done
         sed -i '/cdrom:/d' /etc/apt/sources.list 2>/dev/null || true
         rm -f /etc/apt/sources.list.d/ubuntu.sources
         cat <<EOF > /etc/apt/sources.list
@@ -80,3 +83,16 @@
         - /opt/fca/data/raw
         - /opt/fca/data/processed
         - /opt/fca/logs
+
+    - name: Copiar código do simulador automaticamente para a VM do Simulador
+      copy:
+        src: "../../simulator/"
+        dest: "/opt/fca/simulator/"
+      when: inventory_hostname in groups['simulator']
+      
+    - name: Configurar execução automática do simulador por Cron (a cada hora)
+      shell: |
+        (crontab -l 2>/dev/null | grep -F "gerador.py") || (crontab -l 2>/dev/null; echo "0 * * * * python3 /opt/fca/simulator/gerador.py --output /opt/fca/data/raw") | crontab -
+      when: inventory_hostname in groups['simulator']
+      args:
+        executable: /bin/bash
