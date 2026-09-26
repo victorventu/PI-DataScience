@@ -78,7 +78,7 @@ output "ips" {
 
 # Gera o inventory.ini do Ansible automaticamente, sempre com os IPs certos.
 resource "local_file" "ansible_inventory" {
-  filename = "${path.module}/../ansible/inventory.ini"
+  filename = "${path.module}/ansible/inventory.ini"
   content = templatefile("${path.module}/inventory.tpl", {
     vms          = { 
       for name, vm in libvirt_domain.vm : 

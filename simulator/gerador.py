@@ -129,9 +129,8 @@ def main():
     pasta_saida = Path(args.output)
     pasta_saida.mkdir(parents=True, exist_ok=True)
 
-    arquivo_saida = (
-        pasta_saida / "dados_foco.csv"
-    )
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    arquivo_saida = pasta_saida / f"dados_agronegocio_{timestamp}.csv"
 
     df = gerar_dados(args.quantidade)
 
