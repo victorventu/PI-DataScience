@@ -86,13 +86,21 @@
 
     - name: Copiar código do simulador automaticamente para a VM do Simulador
       copy:
-        src: "../../simulator/"
+        src: "../../../simulator/"
         dest: "/opt/fca/simulator/"
+      when: inventory_hostname in groups['simulator']
+
+    - name: Instalar dependência Faker via pip (apenas na VM do Simulador)
+      pip:
+        name:
+          - faker
+        executable: pip3
+        extra_args: --break-system-packages
       when: inventory_hostname in groups['simulator']
       
     - name: Configurar execução automática do simulador por Cron (a cada hora)
       shell: |
-        (crontab -l 2>/dev/null | grep -F "gerador.py") || (crontab -l 2>/dev/null; echo "0 * * * * python3 /opt/fca/simulator/gerador.py --output /opt/fca/data/raw") | crontab -
+        (crontab -l 2>/dev/null | grep -F "gerador_vendas.py") || (crontab -l 2>/dev/null; echo "0 * * * * python3 /opt/fca/simulator/gerador_vendas.py --saida /opt/fca/data/raw/vendas.csv") | crontab -
       when: inventory_hostname in groups['simulator']
       args:
         executable: /bin/bash
