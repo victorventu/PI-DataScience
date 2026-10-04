@@ -4,6 +4,13 @@
 **Empresa Beneficiada:** F.C.A. Serviços Pecuários e Comércio de Produtos Veterinários
 **Módulo:** Data Science — DevOps / AED / Big Data / Estatística
 
+Caio Henrique Sibrão da Cruz, RA: 23000666
+Gabriel Marcos Freire, RA: 23000669
+Lanna Gabriela Greghi Amaro, RA: 23001112
+Victor Venturini Neto, RA: 23001159
+Luis Eduardo Leme Ra: 23000607
+
+
 ---
 
 ## 1. Visão Geral (DevOps)
