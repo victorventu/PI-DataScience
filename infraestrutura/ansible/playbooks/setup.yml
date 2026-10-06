@@ -104,3 +104,19 @@
       when: inventory_hostname in groups['simulator']
       args:
         executable: /bin/bash
+
+    - name: Instalar Docker e Docker Compose (apenas na VM de Monitoramento)
+      apt:
+        name:
+          - docker-compose
+          - docker.io
+        state: present
+        update_cache: yes
+      when: inventory_hostname in groups['monitoring']
+
+    - name: Garantir que o serviço Docker está ativo e habilitado (apenas na VM de Monitoramento)
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+      when: inventory_hostname in groups['monitoring']
