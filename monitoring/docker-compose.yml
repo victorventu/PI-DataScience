@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Servidor do Prometheus (Coletor de métricas)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+
+  # Coletor de métricas de hardware (CPU, Memória, Disco)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    ports:
+      - "9100:9100"
+
+  # Grafana (Visualização e Dashboards)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - /opt/fca/logs:/var/log/fca_logs:ro
+
+volumes:
+  prometheus_data:
+  grafana_data:
