@@ -80,6 +80,7 @@
         mode: '0755'
       loop:
         - /opt/fca/simulator
+        - /opt/fca/etl
         - /opt/fca/data/raw
         - /opt/fca/data/processed
         - /opt/fca/logs
@@ -97,13 +98,6 @@
         executable: pip3
         extra_args: --break-system-packages
       when: inventory_hostname in groups['simulator']
-      
-    - name: Configurar execução automática do simulador por Cron (a cada hora)
-      shell: |
-        (crontab -l 2>/dev/null | grep -F "gerador_vendas.py") || (crontab -l 2>/dev/null; echo "0 * * * * python3 /opt/fca/simulator/gerador_vendas.py --saida /opt/fca/data/raw/vendas.csv") | crontab -
-      when: inventory_hostname in groups['simulator']
-      args:
-        executable: /bin/bash
 
     - name: Instalar Docker e Docker Compose (apenas na VM de Monitoramento)
       apt:
@@ -120,3 +114,76 @@
         state: started
         enabled: true
       when: inventory_hostname in groups['monitoring']
+
+    - name: Instalar Java (JRE) para o Big Data (apenas na VM Big Data)
+      apt:
+        name: default-jre
+        state: present
+        update_cache: yes
+      when: inventory_hostname in groups['bigdata']
+
+    - name: Copiar código R para a VM de ETL
+      copy:
+        src: "../../../etl/tratamento.R"
+        dest: "/opt/fca/etl/tratamento.R"
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+      when: inventory_hostname in groups['etl']
+
+    - name: Gerar chave SSH no Simulador
+      user:
+        name: "{{ ansible_user }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+      when: inventory_hostname in groups['simulator']
+
+    - name: Ler chave pública do Simulador
+      slurp:
+        src: "/home/{{ ansible_user }}/.ssh/id_rsa.pub"
+      register: sim_key
+      when: inventory_hostname in groups['simulator']
+
+    - name: Autorizar chave do Simulador na ETL
+      authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ hostvars[groups['simulator'][0]]['sim_key']['content'] | b64decode }}"
+      when: inventory_hostname in groups['etl']
+
+    - name: Gerar chave SSH na ETL
+      user:
+        name: "{{ ansible_user }}"
+        generate_ssh_key: yes
+        ssh_key_bits: 2048
+        ssh_key_file: .ssh/id_rsa
+      when: inventory_hostname in groups['etl']
+
+    - name: Ler chave pública da ETL
+      slurp:
+        src: "/home/{{ ansible_user }}/.ssh/id_rsa.pub"
+      register: etl_key
+      when: inventory_hostname in groups['etl']
+
+    - name: Autorizar chave da ETL no Big Data
+      authorized_key:
+        user: "{{ ansible_user }}"
+        state: present
+        key: "{{ hostvars[groups['etl'][0]]['etl_key']['content'] | b64decode }}"
+      when: inventory_hostname in groups['bigdata']
+
+    - name: Criar script do pipeline na VM Simulador
+      template:
+        src: "pipeline.sh.j2"
+        dest: "/opt/fca/simulator/pipeline.sh"
+        mode: '0755'
+        owner: "{{ ansible_user }}"
+      when: inventory_hostname in groups['simulator']
+
+    - name: Configurar execução automática do PIPELINE por Cron (a cada hora)
+      cron:
+        name: "Pipeline de Dados FCA"
+        minute: "0"
+        job: "bash /opt/fca/simulator/pipeline.sh >> /opt/fca/logs/pipeline.log 2>&1"
+        user: "{{ ansible_user }}"
+      when: inventory_hostname in groups['simulator']

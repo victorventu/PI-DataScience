@@ -1,0 +1,16 @@
+#!/bin/bash
+echo "A iniciar o pipeline de dados - $(date)"
+
+# 1. Gerar os dados no Simulador (Python)
+python3 /opt/fca/simulator/gerador_vendas.py --saida /opt/fca/data/raw/vendas.csv
+
+# 2. Enviar o CSV sujo para a máquina ETL
+scp -o StrictHostKeyChecking=no /opt/fca/data/raw/vendas.csv {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }}:/opt/fca/data/raw/
+
+# 3. Mandar a máquina ETL rodar o script R
+ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }} "Rscript /opt/fca/etl/tratamento.R"
+
+# 4. Mandar a máquina ETL enviar o CSV limpo para o Data Lake (Big Data)
+ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }} "scp -o StrictHostKeyChecking=no /opt/fca/data/processed/vendas_tratadas.csv {{ ansible_user }}@{{ hostvars[groups['bigdata'][0]]['ansible_host'] }}:/opt/fca/data/processed/"
+
+echo "Pipeline concluído com sucesso."
