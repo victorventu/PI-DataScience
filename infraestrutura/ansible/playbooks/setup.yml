@@ -187,3 +187,10 @@
         job: "bash /opt/fca/simulator/pipeline.sh >> /opt/fca/logs/pipeline.log 2>&1"
         user: "{{ ansible_user }}"
       when: inventory_hostname in groups['simulator']
+
+    - name: Copiar script de tratamento R para a vm-etl
+      copy:
+        src: ../../../etl/tratamento.R
+        dest: /opt/fca/etl/tratamento.R
+        mode: '0755'
+      when: inventory_hostname == 'vm-etl'
