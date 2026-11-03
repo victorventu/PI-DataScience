@@ -54,12 +54,13 @@
         state: present
       when: inventory_hostname in groups['simulator']
 
-    - name: Instalar R (apenas na VM de ETL)
+    - name: Instalar R e dependências na VM de Big Data (substituindo a antiga VM de ETL)
       apt:
         name:
           - r-base
         state: present
-      when: inventory_hostname in groups['etl']
+        update_cache: yes
+      when: inventory_hostname in groups['bigdata']
 
     - name: Garantir que o serviço Docker está ativo e habilitado
       systemd:
@@ -122,54 +123,12 @@
         update_cache: yes
       when: inventory_hostname in groups['bigdata']
 
-    - name: Copiar código R para a VM de ETL
+    - name: Copiar script de tratamento R para a VM de Big Data
       copy:
         src: "../../../etl/tratamento.R"
         dest: "/opt/fca/etl/tratamento.R"
         mode: '0755'
         owner: "{{ ansible_user }}"
-      when: inventory_hostname in groups['etl']
-
-    - name: Gerar chave SSH no Simulador
-      user:
-        name: "{{ ansible_user }}"
-        generate_ssh_key: yes
-        ssh_key_bits: 2048
-        ssh_key_file: .ssh/id_rsa
-      when: inventory_hostname in groups['simulator']
-
-    - name: Ler chave pública do Simulador
-      slurp:
-        src: "/home/{{ ansible_user }}/.ssh/id_rsa.pub"
-      register: sim_key
-      when: inventory_hostname in groups['simulator']
-
-    - name: Autorizar chave do Simulador na ETL
-      authorized_key:
-        user: "{{ ansible_user }}"
-        state: present
-        key: "{{ hostvars[groups['simulator'][0]]['sim_key']['content'] | b64decode }}"
-      when: inventory_hostname in groups['etl']
-
-    - name: Gerar chave SSH na ETL
-      user:
-        name: "{{ ansible_user }}"
-        generate_ssh_key: yes
-        ssh_key_bits: 2048
-        ssh_key_file: .ssh/id_rsa
-      when: inventory_hostname in groups['etl']
-
-    - name: Ler chave pública da ETL
-      slurp:
-        src: "/home/{{ ansible_user }}/.ssh/id_rsa.pub"
-      register: etl_key
-      when: inventory_hostname in groups['etl']
-
-    - name: Autorizar chave da ETL no Big Data
-      authorized_key:
-        user: "{{ ansible_user }}"
-        state: present
-        key: "{{ hostvars[groups['etl'][0]]['etl_key']['content'] | b64decode }}"
       when: inventory_hostname in groups['bigdata']
 
     - name: Criar script do pipeline na VM Simulador
@@ -188,9 +147,14 @@
         user: "{{ ansible_user }}"
       when: inventory_hostname in groups['simulator']
 
-    - name: Copiar script de tratamento R para a vm-etl
-      copy:
-        src: ../../../etl/tratamento.R
-        dest: /opt/fca/etl/tratamento.R
-        mode: '0755'
-      when: inventory_hostname == 'vm-etl'
+    - name: Instalar node_exporter para métricas de sistema
+      apt:
+        name: prometheus-node-exporter
+        state: present
+        update_cache: yes
+
+    - name: Garantir que o serviço node_exporter está ativo e habilitado
+      systemd:
+        name: prometheus-node-exporter
+        state: started
+        enabled: true

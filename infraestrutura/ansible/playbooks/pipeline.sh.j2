@@ -1,16 +1,12 @@
 #!/bin/bash
-echo "A iniciar o pipeline de dados - $(date)"
+# -----------------------------------------------------------------------------
+# pipeline.sh - Executa o simulador e envia os dados para a vm-bigdata
+# -----------------------------------------------------------------------------
 
-# 1. Gerar os dados no Simulador (Python)
+# 1. Gera novos dados de vendas localmente
 python3 /opt/fca/simulator/gerador_vendas.py --saida /opt/fca/data/raw/vendas.csv
 
-# 2. Enviar o CSV sujo para a máquina ETL
-scp -o StrictHostKeyChecking=no /opt/fca/data/raw/vendas.csv {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }}:/opt/fca/data/raw/
+# 2. Envia os dados crus para a vm-bigdata via SCP
+scp -o StrictHostKeyChecking=no /opt/fca/data/raw/vendas.csv aluno@192.168.122.37:/opt/fca/data/raw/vendas.csv
 
-# 3. Mandar a máquina ETL rodar o script R
-ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }} "Rscript /opt/fca/etl/tratamento.R"
-
-# 4. Mandar a máquina ETL enviar o CSV limpo para o Data Lake (Big Data)
-ssh -o StrictHostKeyChecking=no {{ ansible_user }}@{{ hostvars[groups['etl'][0]]['ansible_host'] }} "scp -o StrictHostKeyChecking=no /opt/fca/data/processed/vendas_tratadas.csv {{ ansible_user }}@{{ hostvars[groups['bigdata'][0]]['ansible_host'] }}:/opt/fca/data/processed/"
-
-echo "Pipeline concluído com sucesso."
+echo "[$(date)] Pipeline executado com sucesso e dados enviados para a vm-bigdata."

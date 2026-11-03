@@ -1,13 +1,18 @@
 global:
-  scrape_interval: 15s
+  scrape_interval: 15s # Recolhe métricas a cada 15 segundos
 
 scrape_configs:
-  - job_name: prometheus
+  # Métrica do próprio Prometheus
+  - job_name: 'prometheus'
     static_configs:
-      - targets:
-          - localhost:9090
+      - targets: ['localhost:9090']
 
-  - job_name: vm-monitoring
+  # Métricas das Máquinas Virtuais (Node Exporter na porta 9100)
+  - job_name: 'laboratorio-vms'
     static_configs:
-      - targets:
-          - node-exporter:9100
+      - targets: 
+          - '192.168.122.176:9100' # vm-simulator
+          - '192.168.122.37:9100'  # vm-bigdata
+          - '192.168.122.139:9100' # vm-monitoring
+        labels:
+          environment: 'production'
