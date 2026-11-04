@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Servidor do Prometheus (Coletor de métricas)
   prometheus:
@@ -16,6 +14,7 @@ services:
   node-exporter:
     image: prom/node-exporter:latest
     container_name: node-exporter
+    hostname: vm-monitoring
     restart: always
     ports:
       - "9100:9100"

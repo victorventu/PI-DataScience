@@ -1,0 +1,7 @@
+node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    hostname: vm-monitoring    # <--- Adiciona esta linha
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
