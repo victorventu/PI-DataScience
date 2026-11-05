@@ -1,3 +1,7 @@
+networks:
+  monitoring-net:
+    driver: bridge
+
 services:
   # Servidor do Prometheus (Coletor de métricas)
   prometheus:
@@ -9,6 +13,8 @@ services:
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
+    networks:
+      - monitoring-net
 
   # Coletor de métricas de hardware (CPU, Memória, Disco)
   node-exporter:
@@ -18,6 +24,8 @@ services:
     restart: always
     ports:
       - "9100:9100"
+    networks:
+      - monitoring-net
 
   # Grafana (Visualização e Dashboards)
   grafana:
@@ -31,6 +39,34 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - /opt/fca/logs:/var/log/fca_logs:ro
+    networks:
+      - monitoring-net
+
+  # Loki (Agregação de Logs)
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yaml:/etc/loki/local-config.yaml
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: always
+    networks:
+      - monitoring-net
+
+  # Promtail (Recolha de Logs)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./loki/promtail-config.yaml:/etc/promtail/promtail.yaml
+    command: -config.file=/etc/promtail/promtail.yaml
+    restart: always
+    networks:
+      - monitoring-net
 
 volumes:
   prometheus_data:
