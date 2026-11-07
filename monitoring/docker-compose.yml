@@ -39,6 +39,7 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - /opt/fca/logs:/var/log/fca_logs:ro
+      - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
       - monitoring-net
 
