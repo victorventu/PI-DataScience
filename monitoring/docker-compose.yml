@@ -27,7 +27,7 @@ services:
     networks:
       - monitoring-net
 
-# Grafana (Visualização e Dashboards)
+# Grafana (Visualização e Dashboards
   grafana:
     image: grafana/grafana:10.4.0
     container_name: grafana
