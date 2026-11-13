@@ -27,9 +27,9 @@ services:
     networks:
       - monitoring-net
 
-  # Grafana (Visualização e Dashboards)
+# Grafana (Visualização e Dashboards)
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:10.4.0
     container_name: grafana
     restart: always
     ports:
@@ -42,7 +42,6 @@ services:
       - ./provisioning/datasources:/etc/grafana/provisioning/datasources:ro
     networks:
       - monitoring-net
-
   # Loki (Agregação de Logs)
   loki:
     image: grafana/loki:latest
