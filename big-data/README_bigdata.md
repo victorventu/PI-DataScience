@@ -55,6 +55,6 @@ No Google Colab, pode ser necessário instalar alguma biblioteca que não esteja
 
 ## Atenção sobre o arquivo `bigdata.py`
 
-O arquivo `bigdata.py` é uma exportação do código desenvolvido no Colab. Ele ainda contém comandos específicos desse ambiente, como a montagem do Google Drive e caminhos iniciados por `/content/drive/`.
+O arquivo `bigdata_pi_testePython.py` é uma exportação do código desenvolvido no Colab. Ele ainda contém comandos específicos desse ambiente, como a montagem do Google Drive e caminhos iniciados por `/content/drive/`.
 
 Por isso, **não deve ser considerado um script Python independente pronto para execução local**. Para execução local ou automatizada no pipeline, será necessário ajustar os caminhos dos arquivos e adaptar os recursos específicos de notebook/Colab, como `display()` e a interface interativa `ipywidgets`.
